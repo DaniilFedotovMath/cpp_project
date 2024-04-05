@@ -2,6 +2,8 @@
 
 #include <Eigen/Dense>
 
+#include <vector>
+
 namespace math {
 
 class Correlation {
