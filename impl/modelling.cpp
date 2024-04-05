@@ -51,6 +51,7 @@ size_t Model::compute(size_t iterCount, bool output)
     }
 
     size_t retryCount = 0;
+    size_t convergeNum = 10000;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distr(0, points_.size() - 1);
