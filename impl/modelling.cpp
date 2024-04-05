@@ -21,7 +21,7 @@ void removePoint(std::vector<Type>& data, const Type& el)
 
 } // namespace
 
-std::vector<Eigen::Vector2i> Model::compute(size_t iterCount)
+size_t Model::compute(size_t iterCount, bool output)
 {
     math::FedotovCorrelation correlation;
     correlation.setLaplacianN(10);
@@ -46,7 +46,9 @@ std::vector<Eigen::Vector2i> Model::compute(size_t iterCount)
     auto [cor1, cor2] = calculateCorrelation();
     double newCor1;
     double newCor2;
-    std::cout << cor1 << " " << cor2 << std::endl;
+    if (output){
+        std::cout << cor1 << " " << cor2 << std::endl;
+    }
 
     size_t retryCount = 0;
     std::random_device rd;
@@ -60,13 +62,18 @@ std::vector<Eigen::Vector2i> Model::compute(size_t iterCount)
             result.clear();
             std::tie(cor1, cor2) = calculateCorrelation();
         }
-        std::cout << "Iteration " << iterNum << std::endl;
+        if (output){
+            std::cout << "Iteration " << iterNum << std::endl;
+        }
         if (std::abs(cor1 - 1) < precision_) {
+            convergeNum = iterNum;
             break;
         }
         bool flag = false;
         const auto& point = points_[distr(gen)];
-        std::cout << "(" << point[0] << ", " << point[1] << ")" << std::endl;
+        if (output){
+            std::cout << "(" << point[0] << ", " << point[1] << ")" << std::endl;
+        }
         if (IsIn(result, point)) {
             removePoint(result, point);
             flag = true;
@@ -78,20 +85,26 @@ std::vector<Eigen::Vector2i> Model::compute(size_t iterCount)
             cor1 = newCor1;
             cor2 = newCor2;
             retryCount = 0;
-            std::cout << "We accepted (" << point[0] << ", " << point[1] << ") new corr1 = " << cor1
-                      << " new corr2 = " << cor2 << std::endl;
+            if (output){
+                std::cout << "We accepted (" << point[0] << ", " << point[1] << ") new corr1 = " << cor1
+                        << " new corr2 = " << cor2 << std::endl;
+            }
         } else {
             const auto rnd = dis(gen);
             const auto acceptCoef =
                 std::exp(temperatureCoef_ * std::min(newCor1 - cor1, newCor2 - cor2));
-            std::cout << "Probability of acceptance = " << acceptCoef << std::endl;
-            std::cout << "random number = " << rnd << std::endl;
+            if (output){
+                std::cout << "Probability of acceptance = " << acceptCoef << std::endl;
+                std::cout << "random number = " << rnd << std::endl;
+            }
             if (rnd < acceptCoef) {
                 cor1 = newCor1;
                 cor2 = newCor2;
                 retryCount = 0;
-                std::cout << "We accepted (" << point[0] << ", " << point[1]
-                          << ") new corr1=" << cor1 << " new corr2=" << cor2 << std::endl;
+                if (output){
+                    std::cout << "We accepted (" << point[0] << ", " << point[1]
+                            << ") new corr1=" << cor1 << " new corr2=" << cor2 << std::endl;
+                }
             } else {
                 if (flag) {
                     result.push_back(point);
@@ -100,13 +113,16 @@ std::vector<Eigen::Vector2i> Model::compute(size_t iterCount)
                 }
             }
         }
-        std::cout << "corr1 after iteration = " << cor1 << " corr2 after iteration = " << cor2
-                  << std::endl;
+        if (output){
+            std::cout << "corr1 after iteration = " << cor1 << " corr2 after iteration = " << cor2
+                    << std::endl;
+        }
         if (std::abs(cor1 - 1) < precision_) {
+            convergeNum = iterNum;
             break;
         }
     }
-    return result;
+    return convergeNum;
 }
 
 } // namespace modelling
