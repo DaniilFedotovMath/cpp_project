@@ -19,7 +19,7 @@ public:
 
     void setPrecision(double precision) noexcept { precision_ = precision; }
 
-    std::vector<Eigen::Vector2i> compute(size_t iterCount);
+    size_t compute(size_t iterCount, bool output);
 
 private:
     Eigen::VectorXd func1_;
